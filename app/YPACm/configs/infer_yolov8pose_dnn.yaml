@@ -1,0 +1,49 @@
+weight_root: &weight_root YPACm/weights
+
+# for pose estimation
+POSE:
+  model_path:
+    - *weight_root
+    - pose_estimation
+    - yolov8l-pose.engine # change if you convert tensorrt model
+  verbose: False
+  device: 'cuda'
+  conf: 0.5
+
+# for action action_classifier
+ACTION_CLASSIFIER:
+  ## custom model
+  name: "dnn"
+  classes: ['stand', 'walk', 'run', 'jump', 'sit', 'squat', 'kick', 'box', 'wave'] ## change with your custom classes ['normal', 'abnormal'] #
+  window_size: 8 # 5
+  threshold: 0.3
+  model_path:
+     - *weight_root
+     - action_classifier
+     - action_classifier_8.pt # action_classifier
+
+BEHAVIOR_CLASSIFIER:
+  ## custom model
+  name: "dnn"
+  classes: ['normal', 'abnormal']
+  window_size: 8 # 5
+  threshold: 0.3
+  model_path:
+     - *weight_root
+     - behavior_classifier
+     - catboost_model.cbm
+
+MULTI_CLASSIFIER:
+  action_classifier_path:
+    - *weight_root
+    - action_classifier
+    - action_classifier_8.pt
+  action_labels: ['stand', 'walk', 'run', 'jump', 'sit', 'squat', 'kick', 'box', 'wave']
+  behavior_classifier_path:
+    - *weight_root
+    - behavior_classifier
+    - catboost_model.cbm
+  behavior_labels: ['normal', 'abnormal']
+  input_size_action_classifier: 768
+  window_size: 8
+  threshold: 0.5

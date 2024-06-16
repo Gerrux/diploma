@@ -1,0 +1,57 @@
+classes: ['normal', 'abnormal'] # change with your custom classes
+
+img_format: "{:05d}.jpg" # dataset image extensions
+window_size: 8 # Number of adjacent frames for extracting features.
+data_root: &data_root ../datasets/ # set your dataset path
+extract_path: &extract_path extracted_data_hb/raw_skeletons_512/ # main dataset path/ extracted path
+
+s1_extract_yolov8pose_skeletons.py:
+    input:
+        valid_imgs:
+            - *data_root # main dataset path
+            - hb_source_images/valid_images.txt # training path
+        imgs_folder:
+            - *data_root
+            - hb_source_images/
+    output:
+        skeletons_folder: &skels_folder
+            - *data_root # main dataset path
+            - *extract_path
+            - skeleton_res/
+        imgs_folder:
+            - *data_root # main dataset path
+            - *extract_path
+            - image_res/
+        imgs_info_txt:
+            - *data_root # main dataset path
+            - *extract_path
+            - images_info.txt
+
+s2_combine_skeletons_txt.py:
+    input:
+        skeletons_folder: *skels_folder
+    output:
+        skeletons_txt: &skels_txt
+            - *data_root # main dataset path
+            - *extract_path
+            - all_skeletons.txt
+
+s3_gen_features.py:
+    input:
+        skeletons_txt: *skels_txt
+    output:
+        features_x: &features_x
+            - *data_root # main dataset path
+            - *extract_path
+            - features_X.csv
+        features_y: &features_y
+            - *data_root # main dataset path
+            - *extract_path
+            - features_Y.csv
+
+s4_1_train_classifier.py:
+    input:
+        features_x: *features_x
+        features_y: *features_y
+    output:
+        model_path: ../weights/behavior_classifier/abnormal_classifier.pt # action_classifier output path
